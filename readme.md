@@ -12,6 +12,8 @@ This plugin was made for F3 version 3.x
 
 Just copy schema.php into F3's `lib/db/sql` folder. Done.
 
+If you use composer, you can add this package by running `composer require ikkez/f3-schema-builder:dev-master`
+
 ## Quick Start
 
 To work with the Schema builder, you need an active SQL Connection. Create one like this:
