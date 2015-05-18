@@ -1,11 +1,11 @@
 # SQL Schema Builder
-### An extension for creating and managing SQL database tables.
+### An extension for creating and altering SQL database tables.
 
-This Plugin provides a SQL table schema builder for the **PHP Fat-Free Framework**. It might be useful for installation scripts, dynamic applications or CMS environments.
+This plugin provides a SQL table schema builder for the **PHP Fat-Free Framework**. It might be useful for installation scripts, dynamic applications or CMS environments.
 
 Currently drivers for MySQL, SQLite, PostgreSQL & SQL Server are supported and fully tested. Further support for Sybase, Oracle and DB2 drivers are already included, but experimental. Handle with care and test your application. No warranty at all.
 
-This Plugin is made for F3 version 3.x
+This plugin was made for F3 version 3.x
 
 ***
 ## Installation
