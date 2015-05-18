@@ -1,0 +1,10 @@
+{
+    "name": "ikkez/F3-SchemaBuilder",
+    "description": "SQL Schema Builder Plugin for PHP Fat-Free Framework",
+    "keywords": ["F3","fatfree","sql"],
+    "homepage": "https://github.com/ikkez/F3-SchemaBuilder",
+    "license": "GPL-3.0",
+    "autoload": {
+		"classmap": ["lib/"]
+    }
+}
