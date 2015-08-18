@@ -1135,7 +1135,7 @@ class Column extends DB_Utils {
             }
             $query .= ' '.$def_cmd;
         }
-        if (!empty($this->after)) {
+        if (!empty($this->after) && $this->table instanceof TableModifier) {
             // `after` feature only works for mysql
             if (preg_match('/mysql/', $this->db->driver())) {
                 $after_cmd = 'AFTER '.$this->db->quotekey($this->after);
