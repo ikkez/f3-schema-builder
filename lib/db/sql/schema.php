@@ -18,7 +18,7 @@
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 2.1.1
+ *  @version 2.1.2-dev
  **/
 
 
@@ -1120,7 +1120,7 @@ class Column extends DB_Utils {
             if ($this->default === Schema::DF_CURRENT_TIMESTAMP) {
                 // check for right datatpye
                 $stamp_type = $this->findQuery($this->schema->dataTypes['TIMESTAMP']);
-                if ($this->type != 'TIMESTAMP' && // TODO: check that condition
+                if ($this->type != 'TIMESTAMP' &&
                     ($this->passThrough && strtoupper($this->type) != strtoupper($stamp_type))
                 )
                     trigger_error(self::TEXT_CurrentStampDataType);
@@ -1164,19 +1164,11 @@ class DB_Utils {
      * @param $cmd array
      * @return bool|string
      */
-    protected function findQuery($cmd)
-    {
-        $match = FALSE;
+    protected function findQuery($cmd) {
         foreach ($cmd as $backend => $val)
-            if (preg_match('/'.$backend.'/', $this->db->driver())) {
-                $match = TRUE;
-                break;
-            }
-        if (!$match) {
-            trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()));
-            return FALSE;
-        }
-        return $val;
+            if (preg_match('/'.$backend.'/', $this->db->driver()))
+                return $val;
+        trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()));
     }
 
     public function __construct(SQL $db) {
