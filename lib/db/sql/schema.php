@@ -1109,6 +1109,9 @@ class Column extends DB_Utils {
         // build query
         $query = $this->db->quotekey($this->name).' '.$type_val.' '.
             ($this->nullable ? 'NULL' : 'NOT NULL');
+        // unify default for booleans
+        if (preg_match('/bool/i', $type_val) && $this->default!==null)
+            $this->default = (int) $this->default;
         // default value
         if ($this->default !== false) {
             $def_cmds = array(
