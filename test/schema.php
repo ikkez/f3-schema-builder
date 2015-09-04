@@ -34,19 +34,22 @@ class Schema extends Controller
         $this->f3->set('CACHE', false);
 
         $dbs = array(
-            /*'mysql' => new \DB\SQL(
-                'mysql:host=localhost;port=3306;dbname=fatfree', 'fatfree', ''
-            ),*/
+//            'mysql' => new \DB\SQL(
+//                'mysql:host=localhost;port=3306;dbname=fatfree', 'fatfree', ''
+//            ),
             'sqlite' => new \DB\SQL(
                 'sqlite::memory:'
-            // 'sqlite:db/sqlite.db'
+//             'sqlite:db/sqlite.db'
             ),
-            /*'pgsql' => new \DB\SQL(
-                'pgsql:host=localhost;dbname=fatfree', 'fatfree', 'fatfree'
-            ),*/
-            /*'sqlsrv' => new \DB\SQL('sqlsrv:SERVER=LOCALHOST\SQLEXPRESS;Database=fatfree',
-                    'SA', 'fatfree')*/
-
+//            'pgsql' => new \DB\SQL(
+//                'pgsql:host=localhost;dbname=fatfree', 'fatfree', 'fatfree'
+//            ),
+//            'sqlsrv2012' => new \DB\SQL(
+//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2012;Database=fatfree','fatfree', 'fatfree'
+//            ),
+//            'sqlsrv2008' => new \DB\SQL(
+//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2008;Database=fatfree','fatfree', 'fatfree'
+//            )
 	);
 
         $this->roundTime = microtime(TRUE) - \Base::instance()->get('timer');
@@ -517,8 +520,10 @@ class Schema extends Controller
         $table->updateColumn('bar',$schema::DT_TEXT);
         $table->build();
         $r1 = $table->getCols(true);
+        $text = preg_match('/sybase|dblib|odbc|sqlsrv/',$this->current_engine)
+            ? 'nvarchar' : 'text';
         $this->test->expect(
-            array_key_exists('bar', $r1) && $r1['bar']['type'] == 'text',
+            array_key_exists('bar', $r1) && $r1['bar']['type'] == $text,
             $this->getTestDesc('update column')
         );
 
@@ -532,6 +537,34 @@ class Schema extends Controller
             in_array($this->tname.'_notnulltext', $r1) && array_key_exists('desc', $r2)
             && $r2['desc']['nullable']==false,
             $this->getTestDesc('create new table with not nullable text column')
+        );
+        $table2->drop();
+
+        // boolean fields are actually bit/tinyint
+        $schema->dropTable($this->tname.'_notnullbool');
+        $table2 = $schema->createTable($this->tname.'_notnullbool');
+        $table2->addColumn('active')->type($schema::DT_BOOL)->nullable(false);
+        $table2 = $table2->build();
+        $r1 = $schema->getTables();
+        $r2 = $table2->getCols(true);
+        $this->test->expect(
+            in_array($this->tname.'_notnullbool', $r1) && array_key_exists('active', $r2)
+            && $r2['active']['nullable']==false,
+            $this->getTestDesc('create new table with not nullable boolean column')
+        );
+
+        $table2->addColumn('active2')->type($schema::DT_BOOL)->nullable(false)->defaults(0);
+        $table2->addColumn('active3')->type($schema::DT_BOOL)->nullable(false)->defaults(1);
+        $table2->build();
+        $r1 = $schema->getTables();
+        $r2 = $table2->getCols(true);
+        $this->test->expect(
+            in_array($this->tname.'_notnullbool', $r1)
+            && array_key_exists('active2', $r2) && $r2['active2']['nullable']==false &&
+            ((int)$r2['active2']['default']==0||$r2['active2']['default']=='false')
+            && array_key_exists('active3', $r2) && $r2['active3']['nullable']==false &&
+            ((int)$r2['active3']['default']==1||$r2['active3']['default']=='true'),
+            $this->getTestDesc('add not nullable boolean columns with default to existing table')
         );
         $table2->drop();
 
