@@ -37,19 +37,19 @@ class Schema extends Controller
 //            'mysql' => new \DB\SQL(
 //                'mysql:host=localhost;port=3306;dbname=fatfree', 'fatfree', ''
 //            ),
-            'sqlite' => new \DB\SQL(
-                'sqlite::memory:'
+//            'sqlite' => new \DB\SQL(
+//                'sqlite::memory:'
 //             'sqlite:db/sqlite.db'
-            ),
+//            ),
 //            'pgsql' => new \DB\SQL(
 //                'pgsql:host=localhost;dbname=fatfree', 'fatfree', 'fatfree'
 //            ),
-//            'sqlsrv2012' => new \DB\SQL(
-//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2012;Database=fatfree','fatfree', 'fatfree'
-//            ),
-//            'sqlsrv2008' => new \DB\SQL(
-//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2008;Database=fatfree','fatfree', 'fatfree'
-//            )
+            'sqlsrv2012' => new \DB\SQL(
+                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2012;Database=fatfree','fatfree', 'fatfree'
+            ),
+            'sqlsrv2008' => new \DB\SQL(
+                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2008;Database=fatfree','fatfree', 'fatfree'
+            )
 	);
 
         $this->roundTime = microtime(TRUE) - \Base::instance()->get('timer');
@@ -526,6 +526,47 @@ class Schema extends Controller
             array_key_exists('bar', $r1) && $r1['bar']['type'] == $text,
             $this->getTestDesc('update column')
         );
+
+        // update column
+        $cols = $table->getCols(true);
+        $bar = $cols['bar'];
+        $col = new \DB\SQL\Column('bar',$table);
+        $col->copyfrom($bar);
+        $col->type_varchar(60);
+        $col->defaults('great');
+        $table->updateColumn('bar',$col);
+        $table->build();
+        $r1 = $table->getCols(true);
+        $this->test->expect(
+            array_key_exists('bar', $r1)
+            && $r1['bar']['default'] == 'great',
+            $this->getTestDesc('update column and default')
+        );
+
+        // update column default only
+        $cols = $table->getCols(true);
+        $bar = $cols['bar'];
+        $col = new \DB\SQL\Column('bar',$table);
+        $col->copyfrom($bar);
+        $col->passThrough();
+        $col->defaults('');
+        $table->updateColumn('bar',$col);
+        $table->build();
+        $r1 = $table->getCols(true);
+        $this->test->expect(
+            array_key_exists('bar', $r1) && $r1['bar']['default'] == '',
+            $this->getTestDesc('update default value')
+        );
+
+        $col->nullable(false);
+        $table->updateColumn('bar',$col);
+        $table->build();
+        $r1 = $table->getCols(true);
+        $this->test->expect(
+            array_key_exists('bar', $r1) && $r1['bar']['nullable'] == false,
+            $this->getTestDesc('update nullable flag')
+        );
+
 
         // create table with text not nullable column
         $table2 = $schema->createTable($this->tname.'_notnulltext');
