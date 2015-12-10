@@ -273,14 +273,16 @@ class Schema extends DB_Utils {
     public function isCompatible($colType,$colDef) {
         $raw_type=$this->findQuery($this->dataTypes[strtoupper($colType)]);
         preg_match('/(\w+(?:\s+\w+)*)/',$raw_type,$match);
-        return preg_match('/'.preg_quote($match[0]).'/i',$colDef);
+        return (bool) preg_match('/'.preg_quote($match[0]).'/i',$colDef);
     }
 }
 
 abstract class TableBuilder extends DB_Utils {
 
     protected   $columns, $pkeys, $queries, $increments, $rebuild_cmd, $suppress;
-    public      $name, $schema;
+    public      $name;
+    /** @var Schema */
+    public      $schema;
 
     const
         TEXT_NoDefaultForTEXT = "Column `%s` of type TEXT can't have a default value.",
@@ -529,6 +531,7 @@ class TableModifier extends TableBuilder {
         $this->queries = array();
         // add new columns
         foreach ($this->columns as $cname => $column) {
+            /** @var Column $column */
             // not nullable fields should have a default value, when altering a table
             if ($column->default === false && $column->nullable === false) {
                 trigger_error(sprintf(self::TEXT_NotNullFieldNeedsDefault, $column->name));
@@ -750,6 +753,17 @@ class TableModifier extends TableBuilder {
                 $cols['default'] = $default;
             }
         return $schema;
+    }
+
+    /**
+     * check if a data type is compatible with an existing column type
+     * @param string $colType (i.e: BOOLEAN)
+     * @param string $column (i.e: active)
+     * @return bool
+     */
+    public function isCompatible($colType,$column) {
+        $cols = $this->getCols(true);
+        return $this->schema->isCompatible($colType,$cols[$column]['type']);
     }
 
     /**
