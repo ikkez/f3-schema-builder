@@ -30,21 +30,22 @@ class Schema extends DB_Utils {
 
     public
         $dataTypes = array(
-            'BOOLEAN' =>    array('mysql|sqlite2?|pgsql' => 'BOOLEAN',
+            'BOOLEAN' =>    array('mysql' => 'tinyint(1)',
+                                  'sqlite2?|pgsql' => 'BOOLEAN',
                                   'mssql|sybase|dblib|odbc|sqlsrv' => 'bit',
                                   'ibm' => 'numeric(1,0)',
             ),
-            'INT1' =>       array('mysql' => 'TINYINT UNSIGNED',
+            'INT1' =>       array('mysql' => 'tinyint',
                                   'sqlite2?' => 'integer',
                                   'mssql|sybase|dblib|odbc|sqlsrv' => 'tinyint',
                                   'pgsql|ibm' => 'smallint',
             ),
-            'INT2' =>       array('mysql' => 'SMALLINT',
+            'INT2' =>       array('mysql' => 'smallint',
                                   'sqlite2?' => 'integer',
                                   'pgsql|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'smallint',
             ),
-            'INT4' =>       array('sqlite2?|pgsql|sybase|odbc|sqlsrv|imb' => 'integer',
-                                  'mysql|mssql|dblib' => 'int',
+            'INT4' =>       array('sqlite2?|pgsql|imb' => 'integer',
+                                  'mysql|mssql|dblib|sybase|odbc|sqlsrv' => 'int',
             ),
             'INT8' =>       array('sqlite2?' => 'integer',
                                   'pgsql|mysql|mssql|sybase|dblib|odbc|sqlsrv|imb' => 'bigint',
@@ -55,14 +56,17 @@ class Schema extends DB_Utils {
                                   'imb' => 'decfloat'
             ),
             'DOUBLE' =>     array('mysql|sqlite2?|ibm' => 'DOUBLE',
-                                  'pgsql|sybase|odbc|sqlsrv' => 'double precision',
-                                  'mssql|dblib' => 'decimal',
+                                  'pgsql' => 'double precision',
+                                  'mssql|dblib|sybase|odbc|sqlsrv' => 'decimal',
             ),
-            'VARCHAR128' => array('mysql|pgsql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(128)',
+            'VARCHAR128' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(128)',
+                                  'pgsql' => 'character varying(128)',
             ),
-            'VARCHAR256' => array('mysql|pgsql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(255)',
+            'VARCHAR256' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(255)',
+                                  'pgsql' => 'character varying(255)',
             ),
-            'VARCHAR512' => array('mysql|pgsql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(512)',
+            'VARCHAR512' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(512)',
+                                  'pgsql' => 'character varying(512)',
             ),
             'TEXT' =>       array('mysql|sqlite2?|pgsql|mssql' => 'text',
                                   'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
@@ -260,6 +264,17 @@ class Schema extends DB_Utils {
         return ($exec) ? $this->db->exec($query) : $query;
     }
 
+    /**
+     * check if a data type is compatible with a given column definition
+     * @param string $colType (i.e: BOOLEAN)
+     * @param string $colDef (i.e: tinyint(1))
+     * @return int
+     */
+    public function isCompatible($colType,$colDef) {
+        $raw_type=$this->findQuery($this->dataTypes[strtoupper($colType)]);
+        preg_match('/(\w+(?:\s+\w+)*)/',$raw_type,$match);
+        return preg_match('/'.preg_quote($match[0]).'/i',$colDef);
+    }
 }
 
 abstract class TableBuilder extends DB_Utils {
@@ -845,7 +860,6 @@ class TableModifier extends TableBuilder {
                     $cmd['pgsql'][] = "ALTER TABLE $table ALTER COLUMN $column DROP NOT NULL;";
                 else
                     $cmd['pgsql'][] = "ALTER TABLE $table ALTER COLUMN $column SET NOT NULL;";
-
                 $df_key = 'DF_'.$this->name.'_'.$name;
                 $cmd['sqlsrv|mssql|sybase|dblib|ibm'] = array(
                     "ALTER TABLE $table ALTER COLUMN $column $datatype ".$col->getNullable().";",
@@ -856,7 +870,6 @@ class TableModifier extends TableBuilder {
                     IF @ConstraintName IS NOT NULL
                     EXEC('ALTER TABLE $this->name DROP CONSTRAINT ' + @ConstraintName)
                     ",
-//                    "ALTER TABLE $table DROP CONSTRAINT ".$df_key.';',
                     "ALTER TABLE $table ADD CONSTRAINT $df_key DEFAULT ".$col->getDefault()." FOR $column;",
                 );
             }
@@ -1175,7 +1188,6 @@ class Column extends DB_Utils {
         // default value
         if ($this->default !== false) {
             $def_cmds = array(
-//                'sqlite2?|mysql|pgsql|mssql|sybase|dblib|odbc|sqlsrv' => 'DEFAULT',
                 'sqlite2?|mysql|pgsql' => 'DEFAULT',
                 'mssql|sybase|dblib|odbc|sqlsrv' => 'constraint DF_'.$this->table->name.'_'.$this->name.' DEFAULT',
                 'ibm' => 'WITH DEFAULT',
@@ -1245,7 +1257,7 @@ class DB_Utils {
      * @param $cmd array
      * @return bool|string
      */
-    protected function findQuery($cmd) {
+    public function findQuery($cmd) {
         foreach ($cmd as $backend => $val)
             if (preg_match('/'.$backend.'/', $this->db->driver()))
                 return $val;

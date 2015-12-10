@@ -34,22 +34,22 @@ class Schema extends Controller
         $this->f3->set('CACHE', false);
 
         $dbs = array(
-//            'mysql' => new \DB\SQL(
-//                'mysql:host=localhost;port=3306;dbname=fatfree', 'fatfree', ''
-//            ),
-//            'sqlite' => new \DB\SQL(
-//                'sqlite::memory:'
-//             'sqlite:db/sqlite.db'
-//            ),
-//            'pgsql' => new \DB\SQL(
-//                'pgsql:host=localhost;dbname=fatfree', 'fatfree', 'fatfree'
-//            ),
-            'sqlsrv2012' => new \DB\SQL(
-                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2012;Database=fatfree','fatfree', 'fatfree'
+            'mysql' => new \DB\SQL(
+                'mysql:host=localhost;port=3306;dbname=fatfree', 'fatfree', ''
             ),
-            'sqlsrv2008' => new \DB\SQL(
-                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2008;Database=fatfree','fatfree', 'fatfree'
-            )
+            'sqlite' => new \DB\SQL(
+                'sqlite::memory:'
+//             'sqlite:db/sqlite.db'
+            ),
+            'pgsql' => new \DB\SQL(
+                'pgsql:host=localhost;dbname=fatfree', 'fatfree', 'fatfree'
+            ),
+//            'sqlsrv2012' => new \DB\SQL(
+//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2012;Database=fatfree','fatfree', 'fatfree'
+//            ),
+//            'sqlsrv2008' => new \DB\SQL(
+//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2008;Database=fatfree','fatfree', 'fatfree'
+//            )
 	);
 
         $this->roundTime = microtime(TRUE) - \Base::instance()->get('timer');
@@ -117,7 +117,22 @@ class Schema extends Controller
                 $this->getTestDesc('adding column ['.$field.'], nullable')
             );
         }
+
+        $r1 = $table->getCols(true);
+        foreach (array_keys($schema->dataTypes) as $index => $field) {
+            if (isset($r1['column_'.$index])) {
+                $datType=$schema->findQuery($schema->dataTypes[$field]);
+                $compatible = $schema->isCompatible($field,$r1['column_'.$index]['type']);
+                $this->test->expect(
+                    $compatible,
+                    $this->getTestDesc('reverse lookup compatible: '.
+                        ($compatible?'YES':'NO').
+                        ', '.$field.': ['.$datType.' > '.$r1['column_'.$index]['type'].']')
+                );
+            }
+        }
         unset($r1);
+
 
         // adding some testing data
         $mapper = new \DB\SQL\Mapper($db, $this->tname);
@@ -607,6 +622,8 @@ class Schema extends Controller
             ((int)$r2['active3']['default']==1||$r2['active3']['default']=='true'),
             $this->getTestDesc('add not nullable boolean columns with default to existing table')
         );
+
+
         $table2->drop();
 
         
