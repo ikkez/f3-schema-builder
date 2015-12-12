@@ -480,7 +480,9 @@ class Schema extends Controller
         $mapper->load();
         $rec_count_cur = $mapper->loaded();
         $schema->truncateTable($this->tname);
-        $rec_count_new = $mapper->load();
+        $mapper->reset();
+        $mapper->load();
+        $rec_count_new = $mapper->loaded();
         $this->test->expect(
             $rec_count_cur==3 && $rec_count_new == 0,
             $this->getTestDesc('truncate table')
