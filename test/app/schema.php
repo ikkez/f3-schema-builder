@@ -476,6 +476,16 @@ class Schema extends Controller
             $this->getTestDesc('adding items with composite primary-keys')
         );
 
+        $mapper = new \DB\SQL\Mapper($db, $this->tname);
+        $mapper->load();
+        $rec_count_cur = $mapper->loaded();
+        $schema->truncateTable($this->tname);
+        $rec_count_new = $mapper->load();
+        $this->test->expect(
+            $rec_count_cur==3 && $rec_count_new == 0,
+            $this->getTestDesc('truncate table')
+        );
+
         $schema->dropTable($this->tname);
 
         // indexes

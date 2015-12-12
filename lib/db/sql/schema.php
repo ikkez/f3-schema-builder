@@ -265,6 +265,27 @@ class Schema extends DB_Utils {
     }
 
     /**
+     * clear a table
+     * @param $name
+     * @param bool $exec
+     * @return array|bool|FALSE|int|string
+     */
+    public function truncateTable($name, $exec = true) {
+        if (is_object($name) && $name instanceof TableBuilder)
+            $name = $name->name;
+        $cmd = array(
+            'mysql|ibm|pgsql|sybase|dblib|mssql|sqlsrv|odbc' =>
+                'TRUNCATE TABLE '.$this->db->quotekey($name).';',
+            'sqlite2?' => array(
+                'DELETE FROM '.$this->db->quotekey($name).';',
+                'UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE name = '.$this->db->quotekey($name).';',
+            ),
+        );
+        $query = $this->findQuery($cmd);
+        return ($exec) ? $this->db->exec($query) : $query;
+    }
+
+    /**
      * check if a data type is compatible with a given column definition
      * @param string $colType (i.e: BOOLEAN)
      * @param string $colDef (i.e: tinyint(1))
