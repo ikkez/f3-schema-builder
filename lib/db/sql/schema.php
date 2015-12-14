@@ -35,20 +35,23 @@ class Schema extends DB_Utils {
                                   'mssql|sybase|dblib|odbc|sqlsrv' => 'bit',
                                   'ibm' => 'numeric(1,0)',
             ),
-            'INT1' =>       array('mysql' => 'tinyint',
-                                  'sqlite2?' => 'integer',
+            'INT1' =>       array('mysql' => 'tinyint(4)',
+                                  'sqlite2?' => 'integer(4)',
                                   'mssql|sybase|dblib|odbc|sqlsrv' => 'tinyint',
                                   'pgsql|ibm' => 'smallint',
             ),
-            'INT2' =>       array('mysql' => 'smallint',
-                                  'sqlite2?' => 'integer',
+            'INT2' =>       array('mysql' => 'smallint(6)',
+                                  'sqlite2?' => 'integer(6)',
                                   'pgsql|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'smallint',
             ),
-            'INT4' =>       array('sqlite2?|pgsql|imb' => 'integer',
-                                  'mysql|mssql|dblib|sybase|odbc|sqlsrv' => 'int',
+            'INT4' =>       array('sqlite2?' => 'integer(11)',
+                                  'pgsql|imb' => 'integer',
+                                  'mysql' => 'int(11)',
+                                  'mssql|dblib|sybase|odbc|sqlsrv' => 'int',
             ),
-            'INT8' =>       array('sqlite2?' => 'integer',
-                                  'pgsql|mysql|mssql|sybase|dblib|odbc|sqlsrv|imb' => 'bigint',
+            'INT8' =>       array('sqlite2?' => 'integer(20)',
+                                  'pgsql|mssql|sybase|dblib|odbc|sqlsrv|imb' => 'bigint',
+                                  'mysql' => 'bigint(20)',
             ),
             'FLOAT' =>      array('mysql|sqlite2?' => 'FLOAT',
                                   'pgsql' => 'double precision',
@@ -293,8 +296,9 @@ class Schema extends DB_Utils {
      */
     public function isCompatible($colType,$colDef) {
         $raw_type=$this->findQuery($this->dataTypes[strtoupper($colType)]);
-        preg_match('/(\w+(?:\s+\w+)*)/',$raw_type,$match);
-        return (bool) preg_match('/'.preg_quote($match[0]).'/i',$colDef);
+        preg_match_all('/(?P<type>\w+)($|\((?P<length>(\d+|(.*)))\))/', $raw_type, $match);
+        return (bool) preg_match_all('/'.preg_quote($match['type'][0]).'($|\('.
+            preg_quote($match['length'][0]).'\))/i',$colDef);
     }
 }
 
