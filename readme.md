@@ -121,11 +121,11 @@ The Schema class provides you the following simple methods for:
 	
 	Returns an array of all tables available within the current database.
 
-- 	**$schema->createTable( $tableName );**
+- 	**$schema->createTable( string $tableName );**
 	
 	Returns a new table object for creation purpose.
 
-- 	**$schema->alterTable( $tableName );**
+- 	**$schema->alterTable( string $tableName );**
 
 	Returns a table object for altering operations on already existing tables.
 
@@ -134,11 +134,19 @@ The Schema class provides you the following simple methods for:
 	Renames a table. If you set `$exec` to `FALSE`, it will return the generated query instead of executing it.
 	You can also use a short-cut on an altering table object, like `$table->rename( string $new_name, [ bool $exec = true ]);`.
 	
--	**$schema->dropTable( $name, [ bool $exec = true ]);**
+-	**$schema->truncateTable( string $name, [ bool $exec = true ]);**
+
+	Clear the contents of a table. Set `$exec` to `FALSE` will return the generated query instead of executing it.
+
+-	**$schema->dropTable( string $name, [ bool $exec = true ]);**
 
 	Deletes a table. Set `$exec` to `FALSE` will return the generated query instead of executing it.
 	You can also use a short-cut on an altering table object, like `$table->drop([ bool $exec = true ]);`.
 
+-	**$schema->isCompatible( string $colType, string $colDef );**
+
+	This is useful for reverse lookup. It checks if a data type is compatible with a given column definition,
+	I.e. `$schema->isCompatible('BOOLEAN','tinyint(1)');`.
 
 
 ### TableCreator Class
@@ -250,13 +258,18 @@ This class is ment for creating new tables. It can be created by using `$schema-
 
     This will instantly drop the table. Notice: Instead of being executed on calling `build()` the execution is controlled by `$exec`.
 
+-	**$table->isCompatible( string $colType, string $column );**
+
+	This is useful for reverse lookup. It checks if a data type is compatible with an existing column type,
+	I.e. `$table->isCompatible('BOOLEAN','hidden');`.
+	
 
 ### Column Class
 
 The method `$table->addColumn($columnName);` adds a further column field to the selected table and creates and returns a new Column object, that can be configured in different ways, before finally building it.
 
 
-* **->type( string $datatype, [ bool $force = false ])**
+* **type( string $datatype, [ bool $force = false ])**
     
     Set datatype of this column. The `$force` argument will disable the datatype check with the included mappings and uses your raw string as type definition.
 
@@ -399,12 +412,12 @@ The method `$table->addColumn($columnName);` adds a further column field to the 
 
 
   
-* **->nullable( bool $state )**
+* **nullable( bool $state )**
 
   Set this column as NULL or NOT NULL. Default is `TRUE` / nullable.
   You can set defaults to nullable fields as well.
 
-* **->defaults( mixed $value )**
+* **defaults( mixed $value )**
 
   Adds a default value for records. Usually a *string* or *integer* value or `NULL`.
 
@@ -418,13 +431,25 @@ The method `$table->addColumn($columnName);` adds a further column field to the 
   $table->addColumn('creation_date')->type_timestamp(TRUE);
   ```
 
-* **->after( string $name )**
+* **after( string $name )**
 
   Trie to place the new column behind an existing one. (*only works for SQLite and MySQL*)
 
-* **->index([ bool $unique = false ])**
+* **index([ bool $unique = false ])**
 
   Add an index for that field. `$unique` makes it a UNIQUE INDEX.
+
+* **copyfrom( string | array $args )**
+
+  Feed column from array or hive key.
+
+* **getColumnArray()**
+
+  Returns an array of the current column configuration
+
+* **getTypeVal()**
+
+  Returns the resolved column data type.
 
 
 ---

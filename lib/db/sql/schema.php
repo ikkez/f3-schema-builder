@@ -13,12 +13,13 @@
  *              |  |    < |    <|  -__|-- __|
  *              |__|__|__||__|__|_____|_____|
  *
- *  Copyright (c) 2015 by ikkez
+ *  Copyright (c) 2016 by ikkez
  *  Christian Knuth <ikkez0n3@gmail.com>
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 2.2.0-dev
+ *  @version 2.2.0
+ *  @date 29.01.2016
  **/
 
 
