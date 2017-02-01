@@ -59,9 +59,10 @@ class Schema extends DB_Utils {
                                   'mssql|sybase|dblib|odbc|sqlsrv' => 'float',
                                   'imb' => 'decfloat'
             ),
-            'DOUBLE' =>     array('mysql|sqlite2?|ibm' => 'DOUBLE',
-                                  'pgsql' => 'numeric',
-                                  'mssql|dblib|sybase|odbc|sqlsrv' => 'decimal',
+            'DOUBLE' =>     array('mysql|ibm' => 'decimal(18,6)',
+                                  'sqlite2?' => 'decimal(15,6)', // max 15-digit on sqlite
+                                  'pgsql' => 'numeric(18,6)',
+                                  'mssql|dblib|sybase|odbc|sqlsrv' => 'decimal(18,6)',
             ),
             'VARCHAR128' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(128)',
                                   'pgsql' => 'character varying(128)',

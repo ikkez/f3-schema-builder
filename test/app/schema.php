@@ -136,6 +136,8 @@ class Schema extends Controller
 
         // adding some testing data
         $mapper = new \DB\SQL\Mapper($db, $this->tname);
+        $mapper->column_5 = 123.456;
+        $mapper->column_6 = 123456.789012;
         $mapper->column_7 = 'hello world';
         $mapper->save();
         $mapper->reset();
@@ -145,6 +147,28 @@ class Schema extends Controller
             $result['column_7'] == 'hello world',
             $this->getTestDesc('mapping dummy data')
         );
+        $this->test->expect(
+            $result['column_5'] == 123.456,
+            $this->getTestDesc('testing float value: '.$result['column_5'])
+        );
+        $this->test->expect(
+            $result['column_6'] == 123456.789012,
+            $this->getTestDesc('testing decimal value: '.$result['column_6'])
+        );
+
+
+		$mapper = new \DB\SQL\Mapper($db, $this->tname);
+		$mapper->load();
+		$num = $this->current_engine == 'sqlite' ? '123456789.012345' : '123456789012.345678';
+		$mapper->column_6 = $num;
+		$mapper->save();
+		$mapper->reset();
+		$result = $mapper->findone(array('column_7 = ?', 'hello world'))->cast();
+		$this->test->expect(
+			$result['column_6'] == $num,
+			$this->getTestDesc('testing max decimal precision: '.$result['column_6'])
+		);
+		unset($mapper);
 
         // default value text, not nullable
         $table->addColumn('text_default_not_null')
