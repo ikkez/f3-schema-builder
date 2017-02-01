@@ -18,7 +18,7 @@
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 2.2.0
+ *  @version 2.2.1-dev
  *  @date 29.01.2016
  **/
 
@@ -60,7 +60,7 @@ class Schema extends DB_Utils {
                                   'imb' => 'decfloat'
             ),
             'DOUBLE' =>     array('mysql|sqlite2?|ibm' => 'DOUBLE',
-                                  'pgsql' => 'double precision',
+                                  'pgsql' => 'numeric',
                                   'mssql|dblib|sybase|odbc|sqlsrv' => 'decimal',
             ),
             'VARCHAR128' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(128)',
