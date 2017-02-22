@@ -350,7 +350,7 @@ abstract class TableBuilder extends DB_Utils {
             $key = $key->name;
         }
         if (array_key_exists($key,$this->columns))
-            trigger_error(sprintf(self::TEXT_ColumnExists,$key));
+            trigger_error(sprintf(self::TEXT_ColumnExists,$key),E_USER_ERROR);
         $column = new Column($key, $this);
         if ($args)
             foreach ($args as $arg => $val)
@@ -462,7 +462,7 @@ class TableCreator extends TableBuilder {
     {
         // check if already existing
         if ($exec && in_array($this->name, $this->schema->getTables())) {
-            trigger_error(sprintf(self::TEXT_TableAlreadyExists,$this->name));
+            trigger_error(sprintf(self::TEXT_TableAlreadyExists,$this->name),E_USER_ERROR);
             return false;
         }
         $cols = '';
@@ -470,7 +470,7 @@ class TableCreator extends TableBuilder {
             foreach ($this->columns as $cname => $column) {
                 // no defaults for TEXT type
                 if ($column->default !== false && is_int(strpos(strtoupper($column->type),'TEXT'))) {
-                    trigger_error(sprintf(self::TEXT_NoDefaultForTEXT, $column->name));
+                    trigger_error(sprintf(self::TEXT_NoDefaultForTEXT, $column->name),E_USER_ERROR);
                     return false;
                 }
                 $cols .= ', '.$column->getColumnQuery();
@@ -548,7 +548,7 @@ class TableModifier extends TableBuilder {
     {
         // check if table exists
         if (!in_array($this->name, $this->schema->getTables()))
-            trigger_error(sprintf(self::TEXT_TableNotExisting, $this->name));
+            trigger_error(sprintf(self::TEXT_TableNotExisting, $this->name),E_USER_ERROR);
 
         if ($sqlite = preg_match('/sqlite2?/', $this->db->driver())) {
             $sqlite_queries = array();
@@ -561,12 +561,12 @@ class TableModifier extends TableBuilder {
             /** @var Column $column */
             // not nullable fields should have a default value, when altering a table
             if ($column->default === false && $column->nullable === false) {
-                trigger_error(sprintf(self::TEXT_NotNullFieldNeedsDefault, $column->name));
+                trigger_error(sprintf(self::TEXT_NotNullFieldNeedsDefault, $column->name),E_USER_ERROR);
                 return false;
             }
             // no defaults for TEXT type
             if($column->default !== false && is_int(strpos(strtoupper($column->type),'TEXT'))) {
-                trigger_error(sprintf(self::TEXT_NoDefaultForTEXT, $column->name));
+                trigger_error(sprintf(self::TEXT_NoDefaultForTEXT, $column->name),E_USER_ERROR);
                 return false;
             }
             $table = $this->db->quotekey($this->name);
@@ -832,9 +832,9 @@ class TableModifier extends TableBuilder {
         $existing_columns = $this->getCols(true);
         // check if column is already existing
         if (!in_array($name, array_keys($existing_columns)))
-            trigger_error('cannot rename column. it does not exist.');
+            trigger_error('cannot rename column. it does not exist.',E_USER_ERROR);
         if (in_array($new_name, array_keys($existing_columns)))
-            trigger_error('cannot rename column. new column already exist.');
+            trigger_error('cannot rename column. new column already exist.',E_USER_ERROR);
         
         if (preg_match('/sqlite2?/', $this->db->driver()))
             // SQlite does not support drop or rename column directly
@@ -993,7 +993,7 @@ class TableModifier extends TableBuilder {
             foreach($result as $row)
                 $indexes[$row['Key_name']] = array('unique' => !(bool)$row['Non_unique']);
         } else
-            trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()));
+            trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()),E_USER_ERROR);
         return $indexes;
     }
 
@@ -1194,7 +1194,7 @@ class Column extends DB_Utils {
      */
     public function getTypeVal() {
         if (!$this->type)
-            trigger_error(sprintf('Cannot build a column query for `%s`: no column type set',$this->name));
+            trigger_error(sprintf('Cannot build a column query for `%s`: no column type set',$this->name),E_USER_ERROR);
         if ($this->passThrough)
             $this->type_val = $this->type;
         else {
@@ -1202,7 +1202,7 @@ class Column extends DB_Utils {
             if (!$this->type_val) {
                 if (Schema::$strict) {
                     trigger_error(sprintf(self::TEXT_NoDataType, strtoupper($this->type),
-                        $this->db->driver()));
+                        $this->db->driver()),E_USER_ERROR);
                     return FALSE;
                 } else {
                     // auto pass-through if not found
@@ -1266,7 +1266,7 @@ class Column extends DB_Utils {
             if ($this->type != 'TIMESTAMP' &&
                 ($this->passThrough && strtoupper($this->type) != strtoupper($stamp_type))
             )
-                trigger_error(self::TEXT_CurrentStampDataType);
+                trigger_error(self::TEXT_CurrentStampDataType,E_USER_ERROR);
             return $this->findQuery($this->schema->defaultTypes[strtoupper($this->default)]);
         } else {
             // static defaults
@@ -1302,7 +1302,7 @@ class DB_Utils {
         foreach ($cmd as $backend => $val)
             if (preg_match('/'.$backend.'/', $this->db->driver()))
                 return $val;
-        trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()));
+        trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()),E_USER_ERROR);
     }
 
     public function __construct(SQL $db) {
