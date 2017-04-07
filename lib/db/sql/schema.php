@@ -452,6 +452,12 @@ class TableCreator extends TableBuilder {
     const
         TEXT_TableAlreadyExists = "Table `%s` already exists. Cannot create it.";
 
+    protected $charset='utf8';
+
+    public function setCharset($str) {
+        $this->charset=$str;
+    }
+
     /**
      * generate SQL query for creating a basic table, containing an ID serial field
      * and execute it if $exec is true, otherwise just return the generated query string
@@ -481,7 +487,7 @@ class TableCreator extends TableBuilder {
             'sqlite2?|sybase|dblib' =>
                 "CREATE TABLE $table ($id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT".$cols.");",
             'mysql' =>
-                "CREATE TABLE $table ($id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT".$cols.") DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;",
+                "CREATE TABLE $table ($id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT".$cols.") DEFAULT CHARSET=$this->charset COLLATE ".$this->charset."_unicode_ci;",
             'pgsql' =>
                 "CREATE TABLE $table ($id SERIAL PRIMARY KEY".$cols.");",
             'mssql|odbc|sqlsrv' =>
@@ -835,7 +841,7 @@ class TableModifier extends TableBuilder {
             trigger_error('cannot rename column. it does not exist.',E_USER_ERROR);
         if (in_array($new_name, array_keys($existing_columns)))
             trigger_error('cannot rename column. new column already exist.',E_USER_ERROR);
-        
+
         if (preg_match('/sqlite2?/', $this->db->driver()))
             // SQlite does not support drop or rename column directly
             $this->rebuild_cmd['rename'][$name] = $new_name;
