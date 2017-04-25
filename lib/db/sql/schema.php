@@ -283,7 +283,7 @@ class Schema extends DB_Utils {
                 'TRUNCATE TABLE '.$this->db->quotekey($name).';',
             'sqlite2?' => array(
                 'DELETE FROM '.$this->db->quotekey($name).';',
-                'UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE name = '.$this->db->quotekey($name).';',
+//                'UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE name = '.$this->db->quotekey($name).';',
             ),
         );
         $query = $this->findQuery($cmd);
