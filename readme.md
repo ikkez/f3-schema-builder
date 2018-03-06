@@ -56,9 +56,10 @@ $table->addColumn('deleted')->type($schema::DT_BOOL)->nullable(false)->defaults(
 ```
 Here is a list of possible configuration methods:
 
-#### $column->type( $datatype )
+#### $column->type( $datatype [ bool $force = FALSE])
 
 Set datatype of this column. Usually a constant of type \DB\SQL\Schema::DT_{datatype}. Have a look at the Column Class API for more details about datatypes.
+When `$force` is *TRUE*, the `$datatype` string is used as a raw value as it is and passed through the creation query (useful for custom data types).
 
 #### $column->nullable( $state )
   
