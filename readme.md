@@ -8,13 +8,13 @@ Currently drivers for MySQL, SQLite, PostgreSQL & SQL Server are supported and f
 This plugin was made for F3 version 3.x and requires PHP 5.4+
 
 ***
-## Installation
+# Installation
 
 Just copy schema.php into F3's `lib/db/sql` folder. Done.
 
 If you use composer, you can add this package by running `composer require ikkez/f3-schema-builder:dev-master`
 
-## Quick Start
+# Quick Start
 
 To work with the Schema builder, you need an active SQL Connection. Create one like this:
 ``` php
@@ -25,7 +25,7 @@ Now create a Schema object to work on. Inject the DB object into its constructor
 $schema = new \DB\SQL\Schema( $db );
 ```
 
-### Create Tables
+## Create Tables
 
 Creating new tables is super easy. Let's have a look at this example:
 ``` php
@@ -41,7 +41,7 @@ $generated_queries = $table->build(false);
 print_r($generated_queries);
 ```
 
-#### Add Columns
+### Add Columns
 
 Using the `$table->addColumn()` method will create a new Column object and adds it to the table object. We can use fluent calls for configuring these columns. 
 ``` php
@@ -56,28 +56,28 @@ $table->addColumn('deleted')->type($schema::DT_BOOL)->nullable(false)->defaults(
 ```
 Here is a list of possible configuration methods:
 
-##### $column->type( $datatype )
+#### $column->type( $datatype )
 
 Set datatype of this column. Usually a constant of type \DB\SQL\Schema::DT_{datatype}. Have a look at the Column Class API for more details about datatypes.
 
-##### $column->nullable( $state )
+#### $column->nullable( $state )
   
 Set this column as NULL or NOT NULL. Default is true / nullable.
   
-##### $column->defaults( $value )
+#### $column->defaults( $value )
 
 Adds a default value for records. 
 
-##### $column->after( $name )
+#### $column->after( $name )
 
 Trys to place the new column behind an existing one.
   
-##### $column->index([ bool $unique = false ])
+#### $column->index([ bool $unique = false ])
 
 Add an index for that field. `$unique` makes it a UNIQUE INDEX.
 
 
-### Alter Tables
+## Alter Tables
 
 Altering existing tables is quite similar to creating them, but offers a bunch more possibilities. A basic example:
 ``` php
@@ -104,16 +104,16 @@ The SchemaBuilder will quote all your table and column identifiers and should be
 
 ---
 
-## API Usage
+# API Usage
 
 
-### Schema Class
+## Schema Class
 
 The Schema class provides you the following simple methods for:
 
-#### managing databases
+### Managing databases
 
-##### $schema->getDatabases();
+#### $schema->getDatabases();
 	
 Returns an array of all databases available (*except for SQLite*). Can be useful for installation purpose, when you want the user to select a database to work on. Therefor just create your DB connection without selecting a database like:
 ```
@@ -122,45 +122,45 @@ $db = new \DB\SQL('mysql:host=localhost;port=3306;dbname=', $user, $password);
 Some DB engine default setups also grants simple read operations, without setting a user / password.
 
 
-#### managing tables
+### Managing tables
 	
-##### $schema->getTables();
+#### $schema->getTables();
 	
 Returns an array of all tables available within the current database.
 
-##### $schema->createTable( string $tableName );
+#### $schema->createTable( string $tableName );
 	
 Returns a new table object for creation purpose.
 
-##### $schema->alterTable( string $tableName );
+#### $schema->alterTable( string $tableName );
 
 Returns a table object for altering operations on already existing tables.
 
-##### $schema->renameTable( string $name, string $new_name, [ bool $exec = true ]);
+#### $schema->renameTable( string $name, string $new_name, [ bool $exec = true ]);
 	
 Renames a table. If you set `$exec` to `FALSE`, it will return the generated query instead of executing it.
 You can also use a short-cut on an altering table object, like `$table->rename( string $new_name, [ bool $exec = true ]);`.
 	
-##### $schema->truncateTable( string $name, [ bool $exec = true ]);
+#### $schema->truncateTable( string $name, [ bool $exec = true ]);
 
 Clear the contents of a table. Set `$exec` to `FALSE` will return the generated query instead of executing it.
 
-##### $schema->dropTable( string $name, [ bool $exec = true ]);
+#### $schema->dropTable( string $name, [ bool $exec = true ]);
 
 Deletes a table. Set `$exec` to `FALSE` will return the generated query instead of executing it.
 You can also use a short-cut on an altering table object, like `$table->drop([ bool $exec = true ]);`.
 
-##### $schema->isCompatible( string $colType, string $colDef );
+#### $schema->isCompatible( string $colType, string $colDef );
 
 This is useful for reverse lookup. It checks if a data type is compatible with a given column definition,
 I.e. `$schema->isCompatible('BOOLEAN','tinyint(1)');`.
 
 
-### TableCreator Class
+## TableCreator Class
 
 This class is meant for creating new tables. It can be created by using `$schema->createTable($name)`.
 
-##### $table->addColumn($key,$args = null); Column
+#### $table->addColumn($key,$args = null); Column
 
 This creates a new Column object and saves a reference to it. You can configure the Column for your needs using further fluent calls, setting its public parameters or directly via config array like this:
 ``` php
@@ -174,7 +174,7 @@ $table->addColumn('title',array(
 ));
 ```
 
-##### $table->addIndex($columns, $unique = FALSE);
+#### $table->addIndex($columns, $unique = FALSE);
 
 You can add an index to a column by configuring the Column object while adding the new column, or like this:
 ``` php
@@ -185,7 +185,7 @@ For adding an combined index on multiple columns, just use an array as parameter
 $table->addIndex(array('name','email'));
 ```
 
-##### $table->primary($pkeys);
+#### $table->primary($pkeys);
 
 If you like to change the default `id` named primary-key right on the creation of a new table, you can use this one:
 ``` php
@@ -209,74 +209,74 @@ $table->build();
 
 Now your primary key is build upon 2 columns, to use records like `id=1, version=1` and `id=1, version=2`.
 
-##### $table->build([ bool $exec = true ]);
+#### $table->build([ bool $exec = true ]);
 
 This will start the table generation process and executes all queries if `$exec` is `TRUE`, otherwise it will just return all queries as array.
 
-### TableModifier Class
+## TableModifier Class
 
 This class is ment for creating new tables. It can be created by using `$schema->alterTable($name)`.
 
-##### $table->addColumn($key,$args = null); Column
+#### $table->addColumn($key,$args = null); Column
 
 Adds a new column
 
-##### $table->renameColumn( string $name, string $new_name );
+#### $table->renameColumn( string $name, string $new_name );
 
 This is used to rename an existing column.
 
-##### $table->updateColumn( string $name, string datatype, [ bool $force = false ]);
+#### $table->updateColumn( string $name, string datatype, [ bool $force = false ]);
 
 This is used to modify / update the column's datatype.
 
-##### $table->dropColumn( string $name );
+#### $table->dropColumn( string $name );
 
 Tries to removes a column from the table, if it exists.
 
-##### $table->addIndex( string | array $columns, [ bool $unique = false ]);
+#### $table->addIndex( string | array $columns, [ bool $unique = false ]);
 
 Creates a index or unique index for one or multiple columns on the table.
 
-##### $table->dropIndex( string | array $columns );
+#### $table->dropIndex( string | array $columns );
 
 Drops an index.
 
-##### $table->listIndex();
+#### $table->listIndex();
 
 Returns an associative array with index name as key and `array('unique'=>$value)` as value.
 
-##### $table->primary( string | array $pkeys);
+#### $table->primary( string | array $pkeys);
 
 Creates a new primary or composite key on the table.
 
-##### $table->getCols([ bool $types = false ]);
+#### $table->getCols([ bool $types = false ]);
 
 Returns an array of existing table columns. If `$types` is set to `TRUE`, it will return an associative array with column name as key and the schema array as value.
 
-##### $table->build([ bool $exec = true ]);
+#### $table->build([ bool $exec = true ]);
 
 This generates the queries needed for the table alteration and executes them when `$exec` is true, otherwise it returns them as array.
 
-##### $table->rename( string $new_name, [ bool $exec = true ]);
+#### $table->rename( string $new_name, [ bool $exec = true ]);
 
 This will instantly rename the table. Notice: Instead of being executed on calling `build()` the execution is controlled by `$exec`.
 
-##### $table->drop([ bool $exec = true ]);
+#### $table->drop([ bool $exec = true ]);
 
 This will instantly drop the table. Notice: Instead of being executed on calling `build()` the execution is controlled by `$exec`.
 
-##### $table->isCompatible( string $colType, string $column );
+#### $table->isCompatible( string $colType, string $column );
 
 This is useful for reverse lookup. It checks if a data type is compatible with an existing column type,
 I.e. `$table->isCompatible('BOOLEAN','hidden');`.
 	
 
-### Column Class
+## Column Class
 
 The method `$table->addColumn($columnName);` adds a further column field to the selected table and creates and returns a new Column object, that can be configured in different ways, before finally building it.
 
 
-##### type( string $datatype, [ bool $force = false ])
+#### type( string $datatype, [ bool $force = false ])
     
 Set datatype of this column. The `$force` argument will disable the datatype check with the included mappings and uses your raw string as type definition.
 
@@ -419,17 +419,17 @@ there are also a bunch of shorthand methods available, you can use instead of `t
 
 
   
-##### passThrough([ bool $state = TRUE ])
+#### passThrough([ bool $state = TRUE ])
 
 When pass-through is enabled, the datatype value is treated as a raw value, which makes it possible to set any other custom data type that is not covered by the included aliases.
 This is equivalent to `type()` with `$force = TRUE`.
 
-##### nullable( bool $state )
+#### nullable( bool $state )
 
 Set this column as NULL or NOT NULL. Default is `TRUE` / nullable.
 You can set defaults to nullable fields as well.
 
-##### defaults( mixed $value )
+#### defaults( mixed $value )
 
 Adds a default value for records. Usually a *string* or *integer* value or `NULL`.
 
@@ -443,25 +443,31 @@ $table->addColumn('creation_date')->type($schema::DT_TIMESTAMP)->defaults($schem
 $table->addColumn('creation_date')->type_timestamp(TRUE);
 ```
 
-##### after( string $name )
+#### after( string $name )
 
 Trie to place the new column behind an existing one. (*only works for SQLite and MySQL*)
 
-##### index([ bool $unique = false ])
+#### index([ bool $unique = false ])
 
 Add an index for that field. `$unique` makes it a UNIQUE INDEX.
 
-##### copyfrom( string | array $args )
+#### copyfrom( string | array $args )
 
 Feed column from array or hive key.
 
-##### getColumnArray()
+#### getColumnArray()
 
 Returns an array of the current column configuration
 
-##### getTypeVal()
+#### getTypeVal()
 
 Returns the resolved column data type.
+
+
+License
+-
+
+GPLv3
 
 
 ---
