@@ -221,6 +221,8 @@ $table->setCharset('utf8mb4');
 // ...
 ```
 
+NB: currently only effects *MySQL*. 1-4 Multibyte UTF8 chars work out of the box in Postgre, SQlite. No workaround for SQL Server yet.
+
 #### $table->build([ bool $exec = true ]);
 
 This will start the table generation process and executes all queries if `$exec` is `TRUE`, otherwise it will just return all queries as array.
