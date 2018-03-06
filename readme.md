@@ -210,6 +210,17 @@ $table->build();
 
 Now your primary key is build upon 2 columns, to use records like `id=1, version=1` and `id=1, version=2`.
 
+#### $table->setCharset( string $str );
+
+This method will set a custom charset and default collation to a new table.
+
+In example, this will set an `utf8mb4` charset and a `utf8mb4_unicode_ci` collation as default for the new table:
+``` php
+$table = $schema->createTable('comments');
+$table->setCharset('utf8mb4');
+// ...
+```
+
 #### $table->build([ bool $exec = true ]);
 
 This will start the table generation process and executes all queries if `$exec` is `TRUE`, otherwise it will just return all queries as array.
