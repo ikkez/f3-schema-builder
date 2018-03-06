@@ -18,7 +18,7 @@
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 2.2.1
+ *  @version 2.2.2
  *  @date 25.04.2017
  **/
 
@@ -763,9 +763,9 @@ class TableModifier extends TableBuilder {
         else
             foreach ($schema as $name => &$cols) {
                 $default = ($cols['default'] === '') ? null : $cols['default'];
-                if (!is_null($default) && (
-                    (is_int(strpos($curdef=$this->findQuery($this->schema->defaultTypes['CUR_STAMP']),
-                    $default)) || is_int(strpos($default,$curdef)))
+                if (!is_null($default) && ((is_int(strpos($curdef=strtolower(
+                    $this->findQuery($this->schema->defaultTypes['CUR_STAMP'])),
+                    strtolower($default))) || is_int(strpos(strtolower($default),$curdef)))
                     || $default == "('now'::text)::timestamp(0) without time zone"))
                 {
                     $default = 'CUR_STAMP';
