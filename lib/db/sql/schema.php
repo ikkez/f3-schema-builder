@@ -224,7 +224,7 @@ class Schema {
     {
         $name = $this->db->quotekey($name);
         $new_name = $this->db->quotekey($new_name);
-        if (preg_match('/odbc/', $this->db->driver())) {
+        if (strpos($this->db->driver(), 'odbc') !== false) {
             $queries = array();
             $queries[] = "SELECT * INTO $new_name FROM $name;";
             $queries[] = $this->dropTable($name, false);
@@ -370,7 +370,7 @@ abstract class TableBuilder {
         if (!is_array($index_cols))
             $index_cols = array($index_cols);
         $quotedCols = array_map(array($this->db, 'quotekey'), $index_cols);
-        if (preg_match('/mysql/', $this->db->driver()))
+        if (strpos($this->db->driver(), 'mysql') !== false)
             foreach($quotedCols as $i=>&$col)
                 if(strtoupper($search_cols[$index_cols[$i]]['type']) == 'TEXT')
                     $col.='('.$length.')';
@@ -429,7 +429,7 @@ abstract class TableBuilder {
         if (count($pkeys) > 1) {
             $pkeys_quoted = array_map(array($this->db,'quotekey'), $pkeys);
             $pk_string = implode(', ', $pkeys_quoted);
-            if (preg_match('/sqlite2?/', $this->db->driver())) {
+            if (strpos($this->db->driver(), 'sqlite') !== false) {
                 // rebuild table with new primary keys
                 $this->rebuild_cmd['pkeys'] = $pkeys;
                 return;
@@ -466,10 +466,12 @@ class TableCreator extends TableBuilder {
     const
         TEXT_TableAlreadyExists = "Table `%s` already exists. Cannot create it.";
 
-    protected $charset='utf8';
+    protected $charset='utf8mb4';
+    protected $collation='unicode';
 
-    public function setCharset($str) {
-        $this->charset=$str;
+    public function setCharset($charset, $collation = 'unicode') {
+        $this->charset=$charset;
+        $this->collation=$collation;
     }
 
     /**
@@ -501,7 +503,7 @@ class TableCreator extends TableBuilder {
             'sqlite2?|sybase|dblib' =>
                 "CREATE TABLE $table ($id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT".$cols.");",
             'mysql' =>
-                "CREATE TABLE $table ($id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT".$cols.") DEFAULT CHARSET=$this->charset COLLATE ".$this->charset."_unicode_ci;",
+                "CREATE TABLE $table ($id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT".$cols.") DEFAULT CHARSET=$this->charset COLLATE ".$this->charset."_".$this->collation."_ci;",
             'pgsql' =>
                 "CREATE TABLE $table ($id SERIAL PRIMARY KEY".$cols.");",
             'mssql|odbc|sqlsrv' =>
@@ -511,7 +513,7 @@ class TableCreator extends TableBuilder {
         );
         $query = $this->findQuery($cmd);
         // composite key for sqlite
-        if (count($this->pkeys) > 1 && preg_match('/sqlite2?/', $this->db->driver())) {
+        if (count($this->pkeys) > 1 && strpos($this->db->driver(), 'sqlite') !== false) {
             $pk_string = implode(', ', $this->pkeys);
             $query = "CREATE TABLE $table ($id INTEGER NULL".$cols.", PRIMARY KEY ($pk_string) );";
             $newTable = new TableModifier($this->name, $this->schema);
@@ -552,13 +554,18 @@ class TableCreator extends TableBuilder {
 class TableModifier extends TableBuilder {
 
     protected
-        $colTypes, $rebuild_cmd;
+        $colTypes, $rebuild_cmd, $charset, $collation;
 
     const
         // error messages
         TEXT_TableNotExisting = "Unable to alter table `%s`. It does not exist.",
         TEXT_NotNullFieldNeedsDefault = 'You cannot add the not nullable column `%s` without specifying a default value',
         TEXT_ENGINE_NOT_SUPPORTED = 'DB Engine `%s` is not supported for this action.';
+
+    public function setCharset($charset, $collation = 'unicode') {
+        $this->charset=$charset;
+        $this->collation=$collation;
+    }
 
     /**
      * generate SQL queries for altering the table and execute it if $exec is true,
@@ -572,13 +579,14 @@ class TableModifier extends TableBuilder {
         if (!in_array($this->name, $this->schema->getTables()))
             trigger_error(sprintf(self::TEXT_TableNotExisting, $this->name),E_USER_ERROR);
 
-        if ($sqlite = preg_match('/sqlite2?/', $this->db->driver())) {
+        if ($sqlite = strpos($this->db->driver(), 'sqlite') !== false) {
             $sqlite_queries = array();
         }
         $rebuild = false;
         $additional_queries = $this->queries;
         $this->queries = array();
         // add new columns
+        $table = $this->db->quotekey($this->name);
         foreach ($this->columns as $cname => $column) {
             /** @var Column $column */
             // not nullable fields should have a default value, when altering a table
@@ -591,7 +599,6 @@ class TableModifier extends TableBuilder {
                 trigger_error(sprintf(self::TEXT_NoDefaultForTEXT, $column->name),E_USER_ERROR);
                 return false;
             }
-            $table = $this->db->quotekey($this->name);
             $col_query = $column->getColumnQuery();
             if ($sqlite) {
                 // sqlite: dynamic column default only works when rebuilding the table
@@ -610,6 +617,9 @@ class TableModifier extends TableBuilder {
                 $this->queries[] = $this->findQuery($cmd);
             }
         }
+        if (strpos($this->db->driver(), 'mysql') !== false && !empty($this->charset) && !empty($this->collation)) {
+                $this->queries[] = "ALTER TABLE $table CONVERT TO CHARACTER SET ".$this->charset." COLLATE ".$this->charset."_".$this->collation."_ci;";
+            }
         if ($sqlite)
             if ($rebuild || !empty($this->rebuild_cmd)) $this->_sqlite_rebuild($exec);
             else $this->queries += $sqlite_queries;
@@ -783,12 +793,12 @@ class TableModifier extends TableBuilder {
                     $default = 'CUR_STAMP';
                 } elseif (!is_null($default)) {
                     // remove single-qoutes
-                    if (preg_match('/sqlite2?/', $this->db->driver()))
+                    if (strpos($this->db->driver(), 'sqlite') !== false)
                         $default=preg_replace('/^\s*([\'"])(.*)\1\s*$/','\2',$default);
                     elseif (preg_match('/mssql|sybase|dblib|odbc|sqlsrv/', $this->db->driver()))
                         $default=preg_replace('/^\s*(\(\')(.*)(\'\))\s*$/','\2',$default);
                     // extract value from character_data in postgre
-                    elseif (preg_match('/pgsql/', $this->db->driver()))
+                    elseif (strpos($this->db->driver(), 'pgsql') !== false)
                         if (is_int(strpos($default, 'nextval')))
                             $default = null; // drop autoincrement default
                         elseif (preg_match("/^\'*(.*)\'*::(\s*\w)+/", $default, $match))
@@ -821,7 +831,7 @@ class TableModifier extends TableBuilder {
         $colTypes = $this->getCols(true);
         // check if column exists
         if (!in_array($name, array_keys($colTypes))) return true;
-        if (preg_match('/sqlite2?/', $this->db->driver())) {
+        if (strpos($this->db->driver(), 'sqlite') !== false) {
             // SQlite does not support drop column directly
             $this->rebuild_cmd['drop'][] = $name;
         } else {
@@ -854,10 +864,10 @@ class TableModifier extends TableBuilder {
         if (in_array($new_name, array_keys($existing_columns)))
             trigger_error('cannot rename column. new column already exist.',E_USER_ERROR);
 
-        if (preg_match('/sqlite2?/', $this->db->driver()))
+        if (strpos($this->db->driver(), 'sqlite') !== false)
             // SQlite does not support drop or rename column directly
             $this->rebuild_cmd['rename'][$name] = $new_name;
-        elseif (preg_match('/odbc/', $this->db->driver())) {
+        elseif (strpos($this->db->driver(), 'obdc') !== false) {
             // no rename column for odbc, create temp column
             $this->addColumn($new_name, $existing_columns[$name])->passThrough();
             $this->queries[] = "UPDATE $this->name SET $new_name = $name";
@@ -898,7 +908,7 @@ class TableModifier extends TableBuilder {
             $datatype = $this->findQuery($this->schema->dataTypes[strtoupper($datatype)]);
         $table = $this->db->quotekey($this->name);
         $column = $this->db->quotekey($name);
-        if (preg_match('/sqlite2?/', $this->db->driver())){
+        if (strpos($this->db->driver(), 'sqlite') !== false) {
             $this->rebuild_cmd['update'][$name] = isset($col)?$col:$datatype;
         } else {
             $dat = isset($col) ? $col->getColumnQuery() :
@@ -1000,13 +1010,13 @@ class TableModifier extends TableBuilder {
         );
         $result = $this->db->exec($this->findQuery($cmd));
         $indexes = array();
-        if (preg_match('/pgsql|sqlite2?/', $this->db->driver())) {
+        if (preg_match('/pgsql|sqlite/', $this->db->driver())) {
             foreach($result as $row)
                 $indexes[$row['name']] = array('unique' => $row['unique']);
         } elseif (preg_match('/mssql|sybase|dblib|sqlsrv/', $this->db->driver())) {
             foreach ($result as $row)
                 $indexes[$row['name']] = array('unique' => $row['is_unique']);
-        } elseif (preg_match('/mysql/', $this->db->driver())) {
+        } elseif (strpos($this->db->driver(), 'mysql') !== false) {
             foreach($result as $row)
                 $indexes[$row['Key_name']] = array('unique' => !(bool)$row['Non_unique']);
         } else
@@ -1257,7 +1267,7 @@ class Column {
         }
         if (!empty($this->after) && $this->table instanceof TableModifier) {
             // `after` feature only works for mysql
-            if (preg_match('/mysql/', $this->db->driver())) {
+            if (strpos($this->db->driver(), 'mysql') !== false) {
                 $after_cmd = 'AFTER '.$this->db->quotekey($this->after);
                 $query .= ' '.$after_cmd;
             }
