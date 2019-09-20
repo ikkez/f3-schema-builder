@@ -459,7 +459,7 @@ $table->addColumn('creation_date')->type_timestamp(TRUE);
 
 #### after( string $name )
 
-Trie to place the new column behind an existing one. (*only works for SQLite and MySQL*)
+Try to place the new column behind an existing one. (*only works for SQLite and MySQL*)
 
 #### index([ bool $unique = false ])
 
