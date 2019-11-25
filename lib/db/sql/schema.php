@@ -18,8 +18,8 @@
  *  https://github.com/ikkez/F3-Sugar/
  *
  * @package DB
- * @version 2.2.3
- * @date 15.05.2018
+ * @version 2.2.4
+ * @date 25.11.2019
  **/
 
 

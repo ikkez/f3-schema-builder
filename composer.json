@@ -5,6 +5,9 @@
     "homepage": "https://github.com/ikkez/f3-schema-builder",
     "license": "GPL-3.0",
     "autoload": {
-		"classmap": ["lib/"]
+        "classmap": ["lib/"]
+    },
+    "require": {
+        "bcosca/fatfree-core": "^3.6"
     }
 }
