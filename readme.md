@@ -210,7 +210,7 @@ $table->build();
 
 Now your primary key is build upon 2 columns, to use records like `id=1, version=1` and `id=1, version=2`.
 
-#### $table->setCharset( string $str );
+#### $table->setCharset( string $str [, $collation = 'unicode' ]);
 
 This method will set a custom charset and default collation to a new table.
 
@@ -284,6 +284,17 @@ This will instantly drop the table. Notice: Instead of being executed on calling
 This is useful for reverse lookup. It checks if a data type is compatible with an existing column type,
 I.e. `$table->isCompatible('BOOLEAN','hidden');`.
 	
+#### $table->setCharset( string $str [, $collation = 'unicode' ]);
+
+This method will set a custom charset and collation and will convert existing tables upon `build()`.
+
+In this example we will convert a table to an `utf8mb4` charset and a `utf8mb4_general_ci` collation:
+
+``` php
+$table = $schema->alterTable('comments');
+$table->setCharset('utf8mb4','general');
+// ...
+```
 
 ## Column Class
 
