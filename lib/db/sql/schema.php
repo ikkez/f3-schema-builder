@@ -466,7 +466,7 @@ class TableCreator extends TableBuilder {
     const
         TEXT_TableAlreadyExists = "Table `%s` already exists. Cannot create it.";
 
-    protected $charset='utf8mb4';
+    protected $charset='utf8';
     protected $collation='unicode';
 
     public function setCharset($charset, $collation = 'unicode') {
@@ -618,8 +618,8 @@ class TableModifier extends TableBuilder {
             }
         }
         if (strpos($this->db->driver(), 'mysql') !== false && !empty($this->charset) && !empty($this->collation)) {
-                $this->queries[] = "ALTER TABLE $table CONVERT TO CHARACTER SET ".$this->charset." COLLATE ".$this->charset."_".$this->collation."_ci;";
-            }
+            $this->queries[] = "ALTER TABLE $table CONVERT TO CHARACTER SET ".$this->charset." COLLATE ".$this->charset."_".$this->collation."_ci;";
+        }
         if ($sqlite)
             if ($rebuild || !empty($this->rebuild_cmd)) $this->_sqlite_rebuild($exec);
             else $this->queries += $sqlite_queries;
@@ -693,7 +693,7 @@ class TableModifier extends TableBuilder {
                             }
                         }
                     }
-                }       
+                }
         // create new table
         $oname = $this->name;
         $this->queries[] = $this->rename($oname.'_temp', false);
