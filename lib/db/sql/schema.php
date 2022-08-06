@@ -471,6 +471,9 @@ abstract class TableBuilder {
 		return true;
 	}
 
+	public function getIndexName($index_cols){
+		return $this->assembleIndexKey($index_cols,$this->name);
+	}
 }
 
 class TableCreator extends TableBuilder {
