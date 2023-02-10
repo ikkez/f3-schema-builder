@@ -1227,8 +1227,10 @@ class Column {
 	public function copyfrom($args) {
 		if (($args || Base::instance()->exists($args,$args))
 			&& is_array($args))
-			foreach ($args as $arg=>$val)
-				$this->{$arg}=$val;
+			foreach ($args as $arg=>$val) {
+				if (property_exists($this, $arg))
+					$this->{$arg}=$val;
+			}
 	}
 
 	/**
