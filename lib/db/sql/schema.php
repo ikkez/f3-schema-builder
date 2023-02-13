@@ -363,6 +363,7 @@ abstract class TableBuilder {
 		$column=new Column($key,$this);
 		if ($args)
 			foreach ($args as $arg=>$val)
+			    if (property_exists($column, $arg))
 				$column->{$arg}=$val;
 		// skip default pkey field
 		if (count($this->pkeys)==1 && in_array($key,$this->pkeys))
